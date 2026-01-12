@@ -1,0 +1,421 @@
+FSHApp - Complete Technical Documentation
+
+Version: 1.0.0  
+Last Updated: January 12, 2026  
+Project Type: Full-Stack Web Application  
+Purpose: Fish Biodiversity Data Management & Scientific Analysis Platform
+
+This documentation contains EVERY detail about the FSHApp project including database schemas, API endpoints, frontend architecture, validation rules, and business logic.
+
+---
+
+DATABASE SCHEMA
+
+All collections use Mongoose ORM with automatic timestamps (`createdAt`, `updatedAt`).
+
+Users Collection (`users`)
+- mail: String (unique, required, lowercased)
+- password_hash: String (bcrypt, 10 rounds, never returned in responses)
+- role: Enum ['admin', 'partner', 'developer'], default: 'developer'
+- first_name, last_name: String
+- title: Enum ['Mr', 'Mrs']
+- position, phone: String
+- is_active: Boolean, default: true (soft delete)
+- email_verified: Boolean, default: false
+- last_login: Date
+- apiKey: String (unique, sparse, auto-generated for developers)
+- preferences: Object {language, ui_settings}
+
+Fish Species (`fish_species`)
+- scientific_name: String (unique, required)
+- common_name: String
+- family, genus, species: String (taxonomy)
+- aliases: Array of Strings
+- characteristics: Object (physical traits)
+- typical_locations, known_diseases: Array of Strings
+- conservation_status: Object
+
+Fish Data (`fish_data`) - Main Entity
+- species_id: ObjectId → fish_species (required)
+- submitted_by: ObjectId → users (required)
+- submitted_by_role: String
+- fish_name: String (max 200 chars)
+- catch_date: Date (required, cannot be future)
+- submission_date: Date (auto)
+- status: Enum ['active', 'draft', 'pending', 'archived'], default: 'active'
+- location (embedded):
+  - location_name, country, region, location_type
+  - coordinates: {latitude (Number, -90 to 90), longitude (Number, -180 to 180)}
+  - water_conditions: {temperature (-2 to 50°C), pH (0-14), salinity (0-50 ppt), dissolved_oxygen (0-20 mg/L)}
+  - environmental_data: {depth (0-11000m), current_speed, wave_height}
+- physical_characteristics (embedded):
+  - length (0-2000 cm), weight (0-1,000,000 g), age (0-200 years)
+  - sex: Enum ['male', 'female', 'unknown']
+  - color_pattern, body_condition, scales_condition, fins_condition
+- catch_details (embedded):
+  - fishing_method (max 100 chars)
+  - depth (0-11000m), water_temperature (-2 to 50°C), salinity (0-50 ppt)
+- images: Array of Strings (URLs, max 20)
+- notes: String (max 2000 chars)
+- disease_ids: Array of ObjectIds → fish_diseases
+
+Fish Diseases (`fish_diseases`)
+- fish_data_id: ObjectId → fish_data (required)
+- disease_name: String (required)
+- disease_code: String
+- severity: Enum ['low', 'medium', 'high', 'critical'], default: 'medium'
+- detected_date, detection_method: Date, String
+- symptoms: Array of Strings
+- treatment: Object
+- status: Enum ['active', 'treated', 'monitoring'], default: 'active'
+- images: Array of Strings (max 10 per disease)
+- lab_results: Object
+
+Fish Analysis (`fish_analyses`)
+- fish_data_id: Object Id → fish_data (required)
+- recorded_by: ObjectId → users (required)
+- analysis_type: Enum ['chemical', 'biological', 'physical', 'microbiological', 'genetic'] (required)
+- test_name: String (required)
+- test_code: String
+- value: Number (required)
+- unit: String (required)
+- reference_range: {min, max, standard (e.g., 'WHO', 'FDA')}
+- result_status: Enum ['normal', 'elevated', 'critical', 'below_normal'], default: 'normal'
+- laboratory: {name, accreditation, report_number}
+- sample_date, analysis_date: Date
+- methodology, notes: String
+- attachments: Array of Strings (URLs)
+
+Partners (`partners`)
+- user_id: ObjectId → users (unique, required)
+- company_name, company_address, tax_number, business_type, website: String
+- contact_person, contact_email, contact_phone: String
+- profile_completed: Boolean, default: false (true when company_name is filled)
+- first_login_completed: Boolean, default:false
+
+Developer Endpoints (`developer_endpoints`)
+- userId: ObjectId → users (required)
+- name: String (required, max 100)
+- endpointSlug: String (unique, auto-generated: `name-slug-{randomHex}`)
+- filters: Object
+  - speciesId, dateFrom, dateTo, country, region, locationType
+  - minLength, maxLength, minWeight, maxWeight, sex, status
+- matchCount: Number (cached count)
+- isActive: Boolean, default: true
+- accessCount: Number (usage stats)
+- lastAccessedAt: Date
+
+System Settings (`system_settings`) - Singleton
+- maintenance_mode: Boolean, default: false
+- allow_registration: Boolean, default: true
+- contact_email: String
+- announcement: {message: String, is_active: Boolean}
+- items_per_page: Number, default: 10
+
+---
+
+API ENDPOINTS
+
+Base URL: `http://localhost:5001`
+
+Authentication Routes (`/auth`)
+- `POST /auth/signup`: Register new user
+  - Body: {mail, password_hash, role, first_name, last_name, title, position, phone}
+  - Validation: Joi schema (min 2 chars name, valid email)
+  - Returns: {success, message}
+  
+- `POST /auth/login`: Login
+  - Body: {mail, password_hash}
+  - Returns: {success, jwtToken, mail, name, userId, role}
+  - Updates `last_login` timestamp
+
+Fish Data Routes (`/api/fish-data`)
+- `GET /api/fish-data`: List all fish (filtered by role)
+  - Auth: Required (JWT)
+  - Populates: species_id, disease_ids, submitted_by
+  - Role Logic:
+    - Admin: sees ALL fish
+    - Partners/Developers: see only their own submissions
+    
+- `POST /api/fish-data`: Create fish record
+  - Auth: Required
+  - Validation: bulkFishDataValidation middleware (373 lines of rules)
+  - Creates: FishData + embedded location + diseases array
+  - Auto-sets: submitted_by, submitted_by_role, submission_date
+  
+- `GET /api/fish-data/export/csv`: Export as CSV
+  - Auth: Required
+  - Uses: `csv-writer` package
+  - Columns: ID, Fish Name, Species, Date, Location, Status, Disease Count
+  - Creates temp file, downloads, deletes
+  
+- `GET /api/fish-data/export/pdf`: Export as PDF
+  - Auth: Required
+  - Uses: `pdfkit` package
+  - Format: Title, Generation Date, Table (Fish Name, Species, Date, Status)
+
+Fish Species Routes (`/api/fish-species`)
+- `GET /api/fish-species`: List all species
+  - Query params: family, genus, search, page, limit
+  - Returns paginated results
+  
+- `POST /api/fish-species`: Create species (Admin only)
+  - Checks for duplicate `scientific_name`
+  
+- `DELETE /api/fish-species/:id`: Delete species
+  - Prevents deletion if used in fish_data
+
+Partner Routes (`/api/partner`)
+- `GET /api/partner/profile`: Get partner profile
+  - Auth: Partner role required
+  - Auto-creates empty profile if missing
+  
+- `PUT /api/partner/profile`: Update profile
+  - Sets `profile_completed = true` when company_name filled
+  
+- `POST /api/partner/complete-first-login`: Mark onboarding complete
+
+Developer Routes (`/api/dev`)
+- `GET /api/dev/api-key`: Get current API key
+- `POST /api/dev/regenerate-key`: Generate new API key (invalidates old)
+- `POST /api/dev/endpoints`: Create custom endpoint
+  - Body: {name, filters{...}}
+  - Auto-generates unique slug
+  - Returns apiKey
+  
+- `GET /api/dev/endpoints`: List user's endpoints
+  - Shows: matchCount, accessCount, createdAt
+  
+- `DELETE /api/dev/endpoints/:id`: Delete endpoint
+  
+- `POST /api/dev/preview`: Preview filter results count
+  - Body: {filters}
+  - Returns: {count}
+  
+- `GET /api/dev/data/:slug?key={apiKey}`: Access custom endpoint data
+  - Public route (requires valid apiKey)
+  - Applies stored filters
+  - Increments accessCount
+
+Admin Routes (`/api/admin`)
+- `GET /api/admin/users`: List all users
+  - Query: role, search, status
+  - Populates partner_info
+  
+- `POST /api/admin/users`: Create user
+  - Auto-creates partner record if role='partner'
+  
+- `PUT /api/admin/users/:id`: Update user
+- `DELETE /api/admin/users/:id`: Soft delete (sets is_active=false)
+  - Prevents deleting own account
+  
+- `GET /api/admin/fish`: List all fish (system-wide)
+  - Query: sort, search, status, submitted_by
+  
+- `GET /api/admin/stats`: Dashboard statistics
+  - Returns user counts by role, fish counts by status, recent users/fish
+  
+- `GET /api/admin/settings`: Get system settings
+- `PUT /api/admin/settings`: Update settings
+  
+- `PUT /api/admin/change-password`: Change admin password
+  - Verifies current password with bcrypt
+  
+- `GET /api/admin/export/users`: Export users CSV
+- `GET /api/admin/export/fish`: Export fish CSV
+
+---
+
+MIDDLEWARE
+
+authMiddleware.js
+- protect(req, res, next): verifies Bearer token
+  - Checks Authorization header
+  - Verifies JWT with process.env.JWT_SECRET
+  - Fetches user (excluding password_hash)
+  - Checks is_active flag
+  - Attaches to req.user
+  
+- authorize(...roles): Role-based access control
+  - Checks if req.user.role is in allowed roles array
+
+bulkFishDataValidation.js (373 lines)
+- validateBulkFishDataCreation: Massive validation chain
+  - species_id: ObjectId check
+  - catch_date: ISO8601, not future
+  - fish_name: max 200 chars
+  - images: max 20, URL validation
+  - catch_details: depth (0-11000m), temp (-2 to 50°C), salinity (0-50 ppt)
+  - physical_characteristics: length (0-2000cm), weight (0-1M g), age (0-200)
+  - location (required): coordinates validation, water_conditions ranges
+  - diseases: array validation, severity enum, symptoms array (max 50)
+
+AuthValidation.js
+- signupValidation: Joi schema
+  - mail: email, 5-100 chars
+  - password: min 2 chars (production should be 8+)
+  - role: enum validation
+  - phone: regex `/^[0-9+\-\s]{7,15}$/`
+  
+- loginValidation: Joi schema for login
+
+---
+
+FRONTEND ARCHITECTURE
+
+App.js - Main Router
+- PrivateRoute HOC: Checks localStorage token & userRole
+  - No token → redirect /login
+  - Wrong role → redirect /home
+  
+- Routes:
+  - `/login` → Login component
+  - `/home` → Home (partner dashboard), roles: ['user', 'admin', 'developer', 'partner']
+  - `/fish-data-create` → CreateFishDataForm, roles: ['user', 'admin', 'partner']
+  - `/admin` → AdminPanel, roles: ['admin'] only
+  - `/developer` → DeveloperDashboard, roles: ['developer'] only
+
+Context: ThemeContext
+- Manages dark/light mode
+- Stores preference in localStorage
+- Adds/removes `.dark` class on `document.documentElement`
+- System preference detection: `window.matchMedia('(prefers-color-scheme: dark)')`
+
+Home.js (2002 lines)
+Main partner dashboard with multiple sections:
+
+- DashboardSection:
+  - Fetches all fish data with `GET /api/fish-data`
+  - FishMap component: Leaflet integration (Loads via CDN)
+  - Shows fish markers with popups
+  - Lists recent 5 fish cards
+  
+- AddFishSection: Embeds CreateFishDataForm
+- ViewFishSection: Table of user's submissions
+- SpeciesSection: Browse fish_species catalog
+- SettingsSection: Partner profile management
+
+- Theme Toggle: Sun/Moon icon in header
+- Sidebar Navigation: Dashboard, Submit Data, My Submissions, Fish Data, Settings
+
+DeveloperDashboard.js (602 lines)
+- API Key Display: Copy to clipboard, Regenerate
+- Create Endpoint Form:
+  - Filter builder (species, date range, location, physical characteristics)
+  - Preview button (calls `/api/dev/preview`)
+  - Generate API Link button
+  - Shows generated URL: `/api/dev/data/{slug}?key={apiKey}`
+  
+- My Endpoints List:
+  - Cards showing matchCount, accessCount, createdAt
+  - Test button (opens in new tab)
+  - Delete button (with ConfirmModal)
+  
+- Settings Tab:
+  - Change Password form
+  - Current, New, Confirm fields
+  - Calls `/api/dev/change-password`
+
+AdminPanel.js (466 lines)
+- Sidebar Sections:
+  - Dashboard (stats)
+  - User Management (UserManagement component)
+  - All Fish Data (FishManagement component)
+  - Settings
+  
+- Settings Tabs:
+  1. General: contact_email, items_per_page, maintenance_mode checkbox
+  2. Announcement: message textarea, is_active checkbox
+  3. Security: allow_registration, Change Password form
+  4. Data Management: Export Users CSV, Export Fish CSV buttons
+
+ConfirmModal.js
+- Reusable confirmation dialog
+- Props: isOpen, onConfirm, onCancel, title, message, confirmText, cancelText, theme, type
+- Themes: 'partner', 'developer', 'admin'
+- Types: 'danger' (red button), 'warning' (orange)
+
+---
+
+AUTHENTICATION FLOW
+
+1. Login (`POST /auth/login`):
+   - bcrypt.compare(inputPassword, user.password_hash)
+   - jwt.sign({mail, _id}, SECRET, {expiresIn: '24h'})
+   - Returns token + user metadata
+   
+2. Storage:
+   - localStorage.setItem('token', jwtToken)
+   - localStorage.setItem('loggedInUser', first_name)
+   - localStorage.setItem('userRole', role)
+   - localStorage.setItem('userId', _id)
+   
+3. Protected Requests:
+   - Header: `Authorization: Bearer {token}`
+   - Middleware decodes token → attaches user to req.user
+   
+4. Logout:
+   - localStorage.removeItem('token')
+   - Navigate to /login
+
+---
+
+DEPLOYMENT
+
+Environment Variables (.env)
+```bash
+PORT=5001
+MONGO_CONN=mongodb+srv://user:pass@cluster.mongodb.net/fshapp?retryWrites=true&w=majority
+JWT_SECRET=your_super_secret_key_change_in_production
+```
+
+Running Locally
+```bash
+Backend
+cd backend
+npm install
+npm start  # Port 5001
+
+Frontend
+cd frontend
+npm install
+npm start  # Port 3000
+```
+
+Production Considerations
+- Change JWT_SECRET to strong random string
+- Set password minimum to 8+ characters
+- Enable HTTPS
+- Configure CORS properly
+- Set up MongoDB Atlas IP whitelist
+- Implement rate limiting
+- Add request logging
+
+---
+
+KEY BUSINESS RULES
+
+1. Role Hierarchy:
+   - Admin: Full access, can manage users/fish
+   - Partner: Can submit fish data, view own submissions
+   - Developer: API access only, no data submission
+
+2. Soft Deletes: Users are deactivated (is_active=false), not deleted
+
+3. Partner Auto-Creation: Partner profile auto-created on first access
+
+4. API Key Management: Developers get auto-generated apiKey, can regenerate (invalidates old links)
+
+5. Endpoint Slug Generation: `{name-slug}-{8-char-random-hex}`
+
+6. Data Ownership: Partners see only their fish, Admins see all
+
+7. Species Protection: Cannot delete species if referenced in fish_data
+
+8. Password Security: bcrypt with 10 salt rounds, never returned in responses
+
+9. Date Validation: catch_date cannot be in future
+
+10. Image Limits: Max 20 per fish, max 10 per disease
+
+This documentation covers every detail of the FSHApp system as of January 12, 2026.

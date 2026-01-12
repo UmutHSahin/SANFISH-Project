@@ -1,0 +1,96 @@
+/* ========================================
+   THEME VARIABLES
+   ======================================== */
+
+:root {
+    /* Light Mode (Default) */
+    --bg-primary: #f5f7fa;
+    --bg-secondary: #f8f9fa;
+    --bg-card: #ffffff;
+    --bg-hover: #f3f4f6;
+    --bg-input: #ffffff;
+
+    --text-primary: #1f2937;
+    --text-secondary: #6c757d;
+    --text-muted: #9ca3af;
+
+    --border-color: #e5e7eb;
+    --border-focus: #3b82f6;
+
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-text: #ffffff;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    --sidebar-bg: #f8f9fa;
+    --sidebar-text: #6c757d;
+    --sidebar-active-bg: #3b82f6;
+    --sidebar-active-text: #ffffff;
+
+    --table-header-bg: #f9fafb;
+    --table-header-text: #374151;
+    --table-row-hover: #f9fafb;
+    --table-border: #f3f4f6;
+
+    --overlay-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Dark Mode Overrides */
+:root.dark {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-card: #1e293b;
+    --bg-surface: #334155;
+    --bg-hover: #334155;
+    --bg-input: #1e293b;
+
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+
+    --border-color: #374151;
+    --border-focus: #60a5fa;
+
+    --primary-color: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-text: #ffffff;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+
+    --sidebar-bg: #0f172a;
+    /* Slightly lighter than main bg */
+    --sidebar-text: #9ca3af;
+    --sidebar-active-bg: #3b82f6;
+    --sidebar-active-text: #ffffff;
+
+    --table-header-bg: #374151;
+    --table-header-text: #f3f4f6;
+    --table-row-hover: #374151;
+    --table-border: #374151;
+
+    --overlay-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Global Application Styles using Variables */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Components transitions */
+.home-container,
+.sidebar,
+.main-content,
+.content-header,
+.stat-card,
+.settings-container,
+.fish-card,
+.action-card,
+.records-table,
+.modal-content {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

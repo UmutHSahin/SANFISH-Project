@@ -1,51 +1,188 @@
-.login-container{
+/* Global reset for this component to prevent layout shifts */
+.login-wrapper * {
+  box-sizing: border-box;
+}
+
+/* Full Screen Background - Matches Home.css background */
+.login-wrapper {
+  height: 100vh;
+  width: 100vw;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: #fff;
-  padding: 32px 48px;
+  justify-content: center;
+  background-color: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Login Card - Clean White Design like Dashboard Cards */
+.login-container {
+  background: var(--bg-card);
+  padding: 48px;
+  border-radius: 12px;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 8px 8px 24px 0px rgb(89, 86, 86)
-   
+  max-width: 440px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  /* Standard Tailwind-like shadow */
+  border: 1px solid var(--border-color);
+  position: relative;
+  z-index: 1;
 }
-.login-container > h1 {
-margin-bottom: 20px;
 
-}
-
-.login-container > form{
+/* Header Section */
+.login-header {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  margin-bottom: 32px;
+  text-align: center;
 }
 
-.login-container div{
+/* Logo - Matches Dashboard Sidebar Logo */
+.logo-square {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+}
+
+.logo-text-small {
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.login-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  /* Gray-900 from Dashboard */
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.login-header p {
+  color: var(--text-muted);
+  /* Gray-500 */
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Form Styling */
+.login-form {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
-.login-container input{
-width: 100%;
-font-size: 20px;
-padding: 10px;
-border: none;
-outline: none;
-border-bottom: 1px solid black;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.login-container input::placeholder{
-  font-size:12px;
+.form-group label {
+  color: var(--text-secondary);
+  /* Gray-700 */
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 2px;
 }
 
-.login-container button{
-background-color: blue;
-border: none;
-font-size: 20px;
-color: white;
-border-radius: 5px;
-padding: 10px;
-cursor: pointer;
-margin: 10px 0;
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
+.input-icon {
+  position: absolute;
+  left: 14px;
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  /* Gray-400 */
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  /* Removed extra left padding */
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  /* Gray-300 */
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+  /* Gray-400 */
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  /* Blue-500 matches active state */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Login Button - Matches Dashboard Active/Action Buttons */
+.btn-login {
+  margin-top: 8px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-login:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.3);
+  filter: brightness(1.05);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.btn-login:hover .btn-icon {
+  transform: translateX(4px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .login-container {
+    padding: 32px;
+    margin: 16px;
+    box-shadow: none;
+    /* Cleaner on mobile */
+  }
 }

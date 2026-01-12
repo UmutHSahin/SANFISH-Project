@@ -1,0 +1,224 @@
+/* ========================================
+   CONFIRM MODAL - BASE STYLES
+   ======================================== */
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--overlay-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.confirm-modal {
+    background: var(--bg-card);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease;
+    overflow: hidden;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ========================================
+   MODAL HEADER
+   ======================================== */
+.confirm-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.confirm-modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.confirm-modal-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.confirm-modal-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ========================================
+   MODAL BODY
+   ======================================== */
+.confirm-modal-body {
+    padding: 24px;
+}
+
+.confirm-modal-body p {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* ========================================
+   MODAL FOOTER
+   ======================================== */
+.confirm-modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+
+.confirm-modal-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.confirm-modal-btn-cancel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.confirm-modal-btn-cancel:hover {
+    background: var(--bg-hover);
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+/* Confirm Button Types */
+.confirm-modal-btn-confirm {
+    color: white;
+}
+
+.confirm-modal-btn-danger {
+    background: #dc2626;
+}
+
+.confirm-modal-btn-danger:hover {
+    background: #b91c1c;
+}
+
+.confirm-modal-btn-warning {
+    background: #f59e0b;
+}
+
+.confirm-modal-btn-warning:hover {
+    background: #d97706;
+}
+
+.confirm-modal-btn-info {
+    background: var(--primary-color);
+}
+
+.confirm-modal-btn-info:hover {
+    background: var(--primary-hover);
+}
+
+/* ========================================
+   THEME: PARTNER (Blue)
+   ======================================== */
+.confirm-modal-partner .confirm-modal-header {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.confirm-modal-partner .confirm-modal-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.confirm-modal-partner .confirm-modal-title {
+    color: #1e40af;
+}
+
+/* ========================================
+   THEME: DEVELOPER (Purple)
+   ======================================== */
+.confirm-modal-developer .confirm-modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-bottom: none;
+}
+
+.confirm-modal-developer .confirm-modal-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.confirm-modal-developer .confirm-modal-title {
+    color: white;
+}
+
+/* ========================================
+   THEME: ADMIN (Dark)
+   ======================================== */
+.confirm-modal-admin .confirm-modal-header {
+    background: var(--bg-surface);
+    border-bottom: none;
+}
+
+.confirm-modal-admin .confirm-modal-icon {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f3f4f6;
+}
+
+.confirm-modal-admin .confirm-modal-title {
+    color: white;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 480px) {
+    .confirm-modal {
+        max-width: 100%;
+        margin: 10px;
+    }
+
+    .confirm-modal-footer {
+        flex-direction: column-reverse;
+    }
+}

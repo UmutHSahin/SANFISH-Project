@@ -12,7 +12,15 @@ function RefrshHandler({ setIsAuthenticated }) {
       setIsAuthenticated(true);
       // Eğer kullanıcı zaten login olduysa, login sayfasına gitmesine izin verme
       if (location.pathname === '/login' || location.pathname === '/' || location.pathname === '/signup') {
-        navigate('/home', { replace: true });
+        // Role'e göre doğru sayfaya yönlendir
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'admin') {
+          navigate('/admin', { replace: true });
+        } else if (userRole === 'developer') {
+          navigate('/developer', { replace: true });
+        } else {
+          navigate('/home', { replace: true });
+        }
       }
     } else {
       setIsAuthenticated(false);

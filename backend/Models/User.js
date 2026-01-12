@@ -25,7 +25,7 @@ const UserSchema = new Schema(
     role: {
       type: String,
       // Şemadaki 'admin, partner, developer' notu
-      enum: ['admin', 'partner', 'developer'], 
+      enum: ['admin', 'partner', 'developer'],
       default: 'developer',
     },
     first_name: {
@@ -39,18 +39,13 @@ const UserSchema = new Schema(
     title: {
       type: String,
       // Şemadaki 'Mr, Mrs' notu
-      enum: ['Mr', 'Mrs'], 
+      enum: ['Mr', 'Mrs'],
     },
     position: {
       type: String,
     },
     phone: {
       type: String,
-    },
-    partner_id: {
-      type: Schema.Types.ObjectId, // Bu bir FK (Foreign Key)
-      ref: 'Partner', // Bu alanın hangi modele (koleksiyona) referans verdiğini belirtin. Model adınız 'Partner' ise bu şekilde bırakın.
-      default: null, // 'null for admin' notu için
     },
     is_active: {
       type: Boolean,
@@ -63,6 +58,12 @@ const UserSchema = new Schema(
     last_login: {
       type: Date,
       default: null,
+    },
+    // API Key for developer access (auto-generated)
+    apiKey: {
+      type: String,
+      unique: true,
+      sparse: true, // Allow null values to coexist
     },
     preferences: {
       // Şemadaki 'UI settings, language' notu
